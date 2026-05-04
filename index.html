@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Observatorio Fundación Natura Bolivia | Geoportal de Áreas Protegidas</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- MapLibre GL -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR MODERNA -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-area">
+                    <div class="logo-icon">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2>OBSERVATORIO</h2>
+                        <span>Fundación Natura Bolivia</span>
+                    </div>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Estadísticas rápidas -->
+                <div class="stats-card" id="statsCard">
+                    <div class="stats-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-value" id="totalAreas">--</span>
+                        <span class="stats-label">Áreas Protegidas</span>
+                    </div>
+                </div>
+
+                <!-- Buscador -->
+                <div class="search-section">
+                    <div class="section-title">
+                        <i class="fas fa-search"></i>
+                        <span>Buscador</span>
+                    </div>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Buscar por nombre...">
+                        <button id="btnBuscar">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="search-suggestions" id="searchSuggestions">
+                        <button class="suggestion-chip" data-buscar="Serranía Irenda">🏔️ Serranía Irenda</button>
+                        <button class="suggestion-chip" data-buscar="Rio Yaguari">💧 Rio Yaguari</button>
+                        <button class="suggestion-chip" data-buscar="Rio Grande">💧 Rio Grande</button>
+                        <button class="suggestion-chip" data-buscar="Noel Kempff">🌳 Noel Kempff</button>
+                        <button class="suggestion-chip" data-buscar="">📋 Ver todos</button>
+                    </div>
+                    <div id="resultadosCount" class="resultados-count"></div>
+                </div>
+
+                <!-- Capas activas -->
+                <div class="layers-section">
+                    <div class="section-title">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Capas Activas</span>
+                    </div>
+                    <div class="layers-list" id="listaDeCapas">
+                        <div class="layer-skeleton">
+                            <div class="skeleton-icon"></div>
+                            <div class="skeleton-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles del mapa -->
+                <div class="map-controls-section">
+                    <div class="section-title">
+                        <i class="fas fa-map"></i>
+                        <span>Mapa Base</span>
+                    </div>
+                    <div class="base-maps">
+                        <button class="base-map-btn active" data-map="streets">
+                            <i class="fas fa-road"></i>
+                            <span>Calles</span>
+                        </button>
+                        <button class="base-map-btn" data-map="satellite">
+                            <i class="fas fa-satellite"></i>
+                            <span>Satélite</span>
+                        </button>
+                        <button class="base-map-btn" data-map="topo">
+                            <i class="fas fa-mountain"></i>
+                            <span>Topográfico</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="legend-info">
+                    <div class="legend-color"></div>
+                    <span>Áreas Protegidas</span>
+                </div>
+                <div class="footer-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Click en polígono para ver detalles</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENEDOR PRINCIPAL DEL MAPA -->
+        <main class="main-content">
+            <div class="map-header">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="map-controls-right">
+                    <button class="label-toggle-btn" id="toggleLabelsBtn">
+                        <i class="fas fa-tag"></i>
+                        <span>Etiquetas</span>
+                    </button>
+                </div>
+            </div>
+            <div id="map" class="map-container"></div>
+        </main>
+
+        <!-- PANEL DE INFORMACIÓN (DETALLES) -->
+        <aside class="info-panel" id="infoPanel">
+            <div class="info-panel-header">
+                <h3>
+                    <i class="fas fa-database"></i>
+                    Detalles del Área
+                </h3>
+                <button class="close-panel" id="closePanelBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="info-panel-content" id="panelContent">
+                <div class="empty-state">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>Selecciona un área en el mapa</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="panel-overlay" id="panelOverlay"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
